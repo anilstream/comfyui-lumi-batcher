@@ -686,6 +686,18 @@ class BatchToolsHandler:
             if not is_under_lumi_batcher(file_path):
                 return web.Response(status=403, text="Access denied")
 
+            # First resolve relative static paths against this node directory.
+            normalized_path = file_path.replace("\\", "/")
+            node_prefix = "./custom_nodes/comfyui-lumi-batcher/"
+            if normalized_path.startswith(node_prefix):
+                node_root = os.path.dirname(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            relative_static_path = normalized_path[len(node_prefix) :]
+            local_candidate = os.path.normpath(
+                os.path.join(node_root, relative_static_path))
+            if os.path.exists(local_candidate):
+                file_path = local_candidate
+
             # 检查文件是否存在
             if not os.path.exists(file_path):
                 new_file_path = get_file_absolute_path(file_path)
